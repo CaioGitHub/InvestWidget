@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';">
+    <title>FiiWidget</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="wrapper">
+        <div id="drag-region"></div>
+        <div id="controls">
+            <input type="text" id="tickerInput" placeholder="Digite o ticker" />
+            <button id="addButton">Adicionar</button>
+        </div>
+        <div id="container"></div>
+    </div>
+    <script src="renderer.js"></script>
+</body>
+
+</html>

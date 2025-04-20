@@ -1,0 +1,14 @@
+{
+    "name": "fiiwidget",
+    "version": "1.0.0",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron ."
+    },
+    "devDependencies": {
+        "electron": "^29.0.0"
+    },
+    "dependencies": {
+        "yahoo-finance2": "^2.13.3"
+    }
+}
