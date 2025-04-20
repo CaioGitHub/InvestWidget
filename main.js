@@ -38,4 +38,22 @@ ipcMain.handle('save-favorites', async (event, newFavorites) => {
   return true;
 });
 
+ipcMain.handle('fetch-history', async (_, ticker, days = 5) => {
+  const full = ticker.includes('.SA') ? ticker : `${ticker}.SA`;
+  const to = new Date();
+  const from = new Date();
+  from.setDate(to.getDate() - days);
+
+  try {
+    return await yahooFinance.historical(full, {
+      period1: from.toISOString().split('T')[0],
+      period2: to.toISOString().split('T')[0],
+      interval: '1d'
+    });
+  } catch (err) {
+    console.warn(`Nenhum histórico para ${full}:`, err.message);
+    return [];
+  }
+});
+
 app.whenReady().then(createWindow);

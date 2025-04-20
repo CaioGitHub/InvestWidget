@@ -157,3 +157,35 @@ input {
 .change.down {
     color: #f44336;
 }
+
+.mini-chart {
+    margin: 5px auto;
+    border-radius: 4px;
+}
+
+#chartRangeControls {
+    margin-top: 8px;
+    margin-bottom: 12px;  
+    display: flex;
+    flex-wrap: wrap;
+    /* permite quebrar em mais de uma linha */
+    gap: 4px;
+    justify-content: center;
+}
+
+#chartRangeControls button {
+    flex: 1 1 48px;
+    /* tenta ocupar equally, mas não fica menor que 48px */
+    padding: 4px 6px;
+    font-size: 0.85rem;
+    border: none;
+    background: #333;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#chartRangeControls button.active {
+    background-color: #4caf50;
+    border-color: #4caf50;
+}
