@@ -114,31 +114,85 @@ async function updateAll() {
 
 // Inicializa o widget
 async function init() {
-    if (!window.electron) {
-        console.error("window.electron não está disponível.");
-        return;
-    }
+    if (!window.electron) return;
+  
+    // carrega todos
     favorites = await window.electron.getFavorites();
-    console.log("Favoritos carregados:", favorites);
+  
+    // filtra só os válidos
+    const filtered = [];
+    for (const t of favorites) {
+      if (await isValidTicker(t)) filtered.push(t);
+    }
+  
+    // se mudou, salva de volta
+    if (filtered.length !== favorites.length) {
+      favorites = filtered;
+      await window.electron.saveFavorites(favorites);
+    }
+  
     updateAll();
     setInterval(updateAll, 60000);
 }
+  
 
-// Adiciona novo ticker com validação
 addButton.addEventListener('click', async () => {
     const newTicker = input.value.toUpperCase().trim();
-    if (newTicker && !favorites.includes(newTicker)) {
-        try {
-            const testData = await window.electron.fetchStock(newTicker);
-            if (!testData?.regularMarketPrice) throw new Error('Sem dados');
-            favorites.push(newTicker);
-            await window.electron.saveFavorites(favorites);
-            updateAll();
-            input.value = '';
-        } catch (e) {
-            alert(`Ticker inválido ou sem dados: ${newTicker}`);
-        }
+    if (!newTicker) return;
+  
+    if (favorites.includes(newTicker)) {
+      alert(`${newTicker} já está nos favoritos.`);
+      input.value = '';
+      return;
     }
+  
+    // valida antes de adicionar
+    const ok = await isValidTicker(newTicker);
+    if (!ok) {
+      alert(`Ticker inválido ou sem dados: ${newTicker}`);
+      return;
+    }
+  
+    // só chega aqui se for válido
+    favorites.push(newTicker);
+    await window.electron.saveFavorites(favorites);
+    updateAll();
+    input.value = '';
 });
+
+async function fetchStockData(ticker) {
+    try {
+      const response = await fetch(`https://api.exemplo.com/stock/${ticker}`);
+      if (!response.ok) throw new Error('Ticker inválido');
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(`Erro ao buscar dados para ${ticker}:`, error.message);
+      return null;  // retorna null se falhar
+    }
+  }
+  
+  async function addTicker(ticker) {
+    const stockData = await fetchStockData(ticker);
+    if (stockData) {
+      createCard(stockData);
+      saveToFavorites(ticker);
+    } else {
+      alert(`Ticker inválido: ${ticker}`);
+    }
+  }
+
+  /**
+ * Retorna true se o ticker for válido (tem preço no Yahoo),
+ * false caso contrário.
+ */
+async function isValidTicker(ticker) {
+    try {
+      const data = await window.electron.fetchStock(ticker);
+      return Boolean(data && data.regularMarketPrice);
+    } catch {
+      return false;
+    }
+  }  
 
 init();
