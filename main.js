@@ -56,4 +56,15 @@ ipcMain.handle('fetch-history', async (_, ticker, days = 5) => {
   }
 });
 
+ipcMain.handle('search-assets', async (_, query) => {
+  if (!query) return [];
+  try {
+    const result = await yahooFinance.search(query, { quotesCount: 10, newsCount: 0 });
+    return result.quotes || [];
+  } catch (err) {
+    console.warn('Erro em search-assets:', err.message);
+    return [];
+  }
+});
+
 app.whenReady().then(createWindow);

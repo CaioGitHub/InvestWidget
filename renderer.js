@@ -2,31 +2,43 @@ console.log("renderer.js carregado!");
 
 const container = document.getElementById('container');
 const input = document.getElementById('tickerInput');
+const dataList = document.getElementById('assetOptions');
 const addButton = document.getElementById('addButton');
 const rangeControls = document.getElementById('chartRangeControls');
 
 let favorites = [];
-let chartRangeDays = 5; // padrão inicial
+let chartRangeDays = 5;
+
+input.addEventListener('input', async () => {
+    const q = input.value.trim();
+    if (q.length < 2) {
+      dataList.innerHTML = '';
+      return;
+    }
+    const results = await window.electron.searchAssets(q);
+    dataList.innerHTML = '';
+    results.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item.symbol.replace('.SA','');
+      opt.label = item.shortname;
+      dataList.appendChild(opt);
+    });
+});
 
 rangeControls.addEventListener('click', e => {
     if (e.target.tagName !== 'BUTTON') return;
     chartRangeDays = parseInt(e.target.dataset.days, 10);
-    // trocar classe active
     rangeControls.querySelectorAll('button').forEach(b =>
         b.classList.toggle('active', b === e.target)
     );
     updateAll();
 });
-
-// Formata número em moeda BRL
 function formatCurrency(value) {
     return Number(value).toLocaleString('pt-BR', {
         style: 'currency',
         currency: 'BRL'
     });
 }
-
-// Desenha mini-gráfico de performance em um canvas
 function drawMiniChart(canvas, prices) {
     const ctx = canvas.getContext('2d');
     const { width, height } = canvas;
@@ -48,8 +60,6 @@ function drawMiniChart(canvas, prices) {
 
     ctx.stroke();
 }
-
-// Cria e exibe um card com cotação, mini-gráfico e botão de remoção
 function updateUI(data, ticker, history) {
     const price = data.regularMarketPrice;
     const prevClose = data.regularMarketPreviousClose ?? data.regularMarketPreviousClose;
@@ -69,8 +79,6 @@ function updateUI(data, ticker, history) {
     ${formattedPrice}<br>
     <span class="change ${changePercent >= 0 ? 'up' : 'down'}">${formattedChange}</span>
   `;
-
-    // canvas para mini-gráfico
     const chartCanvas = document.createElement('canvas');
     chartCanvas.width = 120;
     chartCanvas.height = 40;
@@ -96,8 +104,6 @@ function updateUI(data, ticker, history) {
     card.appendChild(removeBtn);
     container.appendChild(card);
 }
-
-// Atualiza todas as cotações e históricos
 async function updateAll() {
     container.innerHTML = '';
     for (const ticker of favorites) {
@@ -111,21 +117,13 @@ async function updateAll() {
         }
     }
 }
-
-// Inicializa o widget
 async function init() {
     if (!window.electron) return;
-  
-    // carrega todos
     favorites = await window.electron.getFavorites();
-  
-    // filtra só os válidos
     const filtered = [];
     for (const t of favorites) {
       if (await isValidTicker(t)) filtered.push(t);
     }
-  
-    // se mudou, salva de volta
     if (filtered.length !== favorites.length) {
       favorites = filtered;
       await window.electron.saveFavorites(favorites);
@@ -139,21 +137,15 @@ async function init() {
 addButton.addEventListener('click', async () => {
     const newTicker = input.value.toUpperCase().trim();
     if (!newTicker) return;
-  
     if (favorites.includes(newTicker)) {
       alert(`${newTicker} já está nos favoritos.`);
       input.value = '';
       return;
     }
-  
-    // valida antes de adicionar
-    const ok = await isValidTicker(newTicker);
-    if (!ok) {
+    if (!await isValidTicker(newTicker)) {
       alert(`Ticker inválido ou sem dados: ${newTicker}`);
       return;
     }
-  
-    // só chega aqui se for válido
     favorites.push(newTicker);
     await window.electron.saveFavorites(favorites);
     updateAll();
@@ -168,7 +160,7 @@ async function fetchStockData(ticker) {
       return data;
     } catch (error) {
       console.error(`Erro ao buscar dados para ${ticker}:`, error.message);
-      return null;  // retorna null se falhar
+      return null;
     }
   }
   
@@ -182,10 +174,7 @@ async function fetchStockData(ticker) {
     }
   }
 
-  /**
- * Retorna true se o ticker for válido (tem preço no Yahoo),
- * false caso contrário.
- */
+  
 async function isValidTicker(ticker) {
     try {
       const data = await window.electron.fetchStock(ticker);
@@ -193,6 +182,6 @@ async function isValidTicker(ticker) {
     } catch {
       return false;
     }
-  }  
+}
 
 init();
