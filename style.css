@@ -1,4 +1,4 @@
-/* Reset e layout principal */
+
 html,
 body {
     margin: 0;
@@ -14,7 +14,7 @@ body {
 
 #drag-region {
     height: 30px;
-    /* ou o valor que quiser */
+   
     width: 100%;
     -webkit-app-region: drag;
 }
@@ -25,7 +25,7 @@ input {
 }
 
 
-/* Envolve tudo */
+
 #wrapper {
     display: flex;
     flex-direction: column;
@@ -36,7 +36,7 @@ input {
     box-sizing: border-box;
 }
 
-/* Controles no topo */
+
 #controls {
     display: flex;
     flex-direction: column;
@@ -46,7 +46,7 @@ input {
     padding-bottom: 10px;
 }
 
-/* Input e botão */
+
 #tickerInput {
     width: 100%;
     padding: 6px;
@@ -68,7 +68,7 @@ input {
     background-color: #45a049;
 }
 
-/* Container com os cards (com scroll bonitinho) */
+
 #container {
     flex-grow: 1;
     overflow-y: auto;
@@ -98,7 +98,7 @@ input {
     background: rgba(255, 255, 255, 0.5);
 }
 
-/* Cartões */
+
 .card {
     position: relative;
     padding: 10px;
@@ -112,7 +112,7 @@ input {
     text-align: center;
 }
 
-/* Animações de fade */
+
 .fade-in {
     opacity: 0;
     transform: scale(0.9);
@@ -137,7 +137,7 @@ input {
     }
 }
 
-/* Botão de remover */
+
 .remove-button {
     background: none;
     border: none;
@@ -149,7 +149,7 @@ input {
     cursor: pointer;
 }
 
-/* Cores para variação */
+
 .change.up {
     color: #4caf50;
 }
@@ -168,14 +168,14 @@ input {
     margin-bottom: 12px;  
     display: flex;
     flex-wrap: wrap;
-    /* permite quebrar em mais de uma linha */
+   
     gap: 4px;
     justify-content: center;
 }
 
 #chartRangeControls button {
     flex: 1 1 48px;
-    /* tenta ocupar equally, mas não fica menor que 48px */
+   
     padding: 4px 6px;
     font-size: 0.85rem;
     border: none;
