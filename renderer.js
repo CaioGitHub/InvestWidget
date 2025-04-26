@@ -1,23 +1,34 @@
 console.log("renderer.js carregado!");
 
+if (window.Chart && window.ChartZoom) {
+  Chart.register(ChartZoom);
+} else {
+  console.warn("Chart ou ChartZoom não encontrado no global");
+}
+
 const container = document.getElementById('container');
 const input = document.getElementById('tickerInput');
 const dataList = document.getElementById('assetOptions');
 const addButton = document.getElementById('addButton');
 const rangeControls = document.getElementById('chartRangeControls');
 
-const alertModal      = document.getElementById('alertModal');
-const closeModalBtn   = document.getElementById('closeModal');
+const alertModal = document.getElementById('alertModal');
+const closeModalBtn = document.getElementById('closeModal');
 const modalTickerElem = document.getElementById('modalTicker');
 const alertValueInput = document.getElementById('alertValue');
-const cancelAlertBtn  = document.getElementById('cancelAlert');
-const saveAlertBtn    = document.getElementById('saveAlert');
+const cancelAlertBtn = document.getElementById('cancelAlert');
+const saveAlertBtn = document.getElementById('saveAlert');
+
+const chartModal = document.getElementById('chartModal');
+const closeChartModal = document.getElementById('closeChartModal');
+const chartModalCanvas = document.getElementById('chartModalCanvas');
 
 let favorites = [];
 let chartRangeDays = 5;
 let thresholds = JSON.parse(localStorage.getItem('thresholds') || '{}');
 let alerted = {};
 let currentAlertTicker = null;
+let modalChart = null;
 
 if (Notification.permission !== 'granted') {
   Notification.requestPermission();
@@ -124,9 +135,10 @@ function updateUI(data, ticker, history) {
 
   card.appendChild(alertBtn);
   card.appendChild(info);
-  card.appendChild(chartCanvas);
   card.appendChild(removeBtn);
   container.appendChild(card);
+  chartCanvas.addEventListener('click', () => showChartModal(ticker, history));
+  card.appendChild(chartCanvas);
 
   const th = thresholds[ticker];
   if (th !== undefined && price >= th && !alerted[ticker]) {
@@ -235,5 +247,88 @@ saveAlertBtn.addEventListener('click', () => {
   }
   alertModal.style.display = 'none';
 });
+
+closeChartModal.addEventListener('click', () => {
+  chartModal.style.display = 'none';
+  if (modalChart) {
+    modalChart.destroy();
+    modalChart = null;
+  }
+});
+
+/**
+ * Abre o modal com o gráfico grande.
+ * @param {string} ticker 
+ * @param {Array} history  array de { date, open, high, low, close, volume }
+ */
+function showChartModal(ticker, history) {
+  console.log("Abrindo modal de gráfico para", ticker, "com", history.length, "pontos");
+
+  const labels = history.map(h => h.date);
+  const dataSet = history.map(h => h.close);
+
+  chartModal.style.display = 'flex';
+
+  if (modalChart) {
+    modalChart.destroy();
+    modalChart = null;
+  }
+  chartModalCanvas.style.width = '100%';
+  chartModalCanvas.style.height = '300px';
+
+  try {
+    modalChart = new Chart(chartModalCanvas.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: ticker,
+          data: dataSet,
+          fill: false,
+          borderColor: '#4caf50',
+          borderWidth: 2,
+          pointRadius: history.length > 30 ? 1 : 3,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          tooltip: { enabled: true, mode: 'index', intersect: false },
+          zoom: {
+            zoom: {
+              wheel: { enabled: true },
+              pinch: { enabled: true },
+              mode: 'x',
+            },
+            pan: {
+              enabled: true,
+              mode: 'x',
+            },
+          },
+        },
+        scales: {
+          x: {
+            display: true,
+            title: { display: true, text: 'Data' },
+            ticks: {
+              maxTicksLimit: 6,
+              autoSkip: true,
+              maxRotation: 0,
+              minRotation: 0,
+            }
+          },
+          y: {
+            display: true,
+            title: { display: true, text: 'Fechamento (BRL)' }
+          }
+        }
+      },
+    });
+    console.log("Gráfico gerado com sucesso");
+  } catch (err) {
+    console.error("Erro ao criar Chart:", err);
+  }
+}
 
 init();
