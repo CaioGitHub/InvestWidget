@@ -45,11 +45,27 @@ ipcMain.handle('fetch-history', async (_, ticker, days = 5) => {
   from.setDate(to.getDate() - days);
 
   try {
-    return await yahooFinance.historical(full, {
+    const raw = await yahooFinance.chart(full, {
       period1: from.toISOString().split('T')[0],
       period2: to.toISOString().split('T')[0],
       interval: '1d'
     });
+
+    if (!raw.quotes || raw.quotes.length === 0) {
+      console.warn(`Nenhum resultado de chart() para ${full}`);
+      return [];
+    }
+
+    return raw.quotes.map(q => ({
+      date:   q.date instanceof Date
+             ? q.date.toISOString().split('T')[0]
+             : new Date(q.date).toISOString().split('T')[0],
+      open:   q.open,
+      high:   q.high,
+      low:    q.low,
+      close:  q.close,
+      volume: q.volume
+    }));
   } catch (err) {
     console.warn(`Nenhum histórico para ${full}:`, err.message);
     return [];
