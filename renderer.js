@@ -305,6 +305,10 @@ function showChartModal(ticker, history) {
               enabled: true,
               mode: 'x',
             },
+            limits: {
+              x: { min: 'original', max: 'original' },
+              y: { min: 'original', max: 'original' },
+            }
           },
         },
         scales: {
